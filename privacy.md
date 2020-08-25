@@ -30,4 +30,4 @@ The `bigquery-el` package only communicates with Google APIs. No user data is sh
 
 The `bigquery-el` package may store your credentials on your local machine, for later reuse by you. Use caution when using the package on a shared machine.
 
-By default, an OAuth token is cached in a local file, such as `~/.emacs.d/bigquery-el/bigquery-oauth`. See the package documentation for for information on how to control the location of the token cache or suppress token caching.
+By default, an OAuth token is cached in a local file, such as `~/.emacs.d/bigquery-el/.bigquery-oauth`. See the package documentation for for information on how to control the location of the token cache or suppress token caching.

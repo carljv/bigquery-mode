@@ -1,0 +1,322 @@
+(require 'ivy)
+(require 'json)
+(require 'url-http)
+
+
+;;; BigQuery API
+
+(defconst bigquery/api-base-url
+  "https://bigquery.googleapis.com/bigquery/v2")
+
+
+(defun bigquery/api-handle-auth-and-call (api-fn &rest args)
+  (let* ((token-info (bigquery/google-oauth2-refresh-access-and-store-token))
+	 (token (cdr (assoc 'access_token token-info))))
+    (when token (apply api-fn token args))))
+
+
+(defun bigquery/api-make-api-call (token api-url-fn &rest args)
+  (let* ((url (apply api-url-fn args))
+	 (url-request-method "GET")
+	 (url-request-extra-headers (bigquery/api-make-auth-header token))
+	 (response-buffer (url-retrieve-synchronously url t)))
+    (bigquery/api-json-parse-response-body response-buffer)))
+    
+			    
+(defun bigquery/api-make-auth-header (token)
+  (list (cons "Authorization" (format "Bearer %s" token))))
+
+
+(defun bigquery/api-json-parse-response-body (buffer)
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (re-search-forward "^$")
+    (let ((response-data (json-read)))
+      (kill-buffer (current-buffer))
+      response-data)))
+
+
+;; REST API endpoint URLs
+;; ----------------------
+
+(defun bigquery/api-projects-list-url ()
+  (concat bigquery/api-base-url
+	  "/projects?max_results=1000"))
+
+
+(defun bigquery/api-datasets-list-url (project-id)
+  (concat bigquery/api-base-url
+	  "/projects/" project-id
+	  "/datasets?max_results=1000"))
+
+
+(defun bigquery/api-tables-list-url (project-id dataset-id)
+  (concat bigquery/api-base-url
+	  "/projects/" project-id
+	  "/datasets/" dataset-id
+	  "/tables?max_results=1000"))
+
+  (defun bigquery/api-table-get-url (project-id dataset-id table-id)
+    (concat bigquery/api-base-url
+	    "/projects/" project-id
+	    "/datasets/" dataset-id
+	    "/tables/"   table-id))
+
+
+;; List projects
+;; -------------
+
+(defun bigquery/api-noauth-projects-list (token)
+  (bigquery/api-make-api-call token 'bigquery/api-projects-list-url))
+
+
+(defun bigquery/api-projects-list ()
+  (bigquery/api-handle-auth-and-call 'bigquery/api-noauth-projects-list))
+
+
+(defun bigquery/api-get-project-ids-from-response (projects-list-response)
+  (let* ((projects (alist-get 'projects projects-list-response))
+	 (project-refs (mapcar (lambda (x) (alist-get 'projectReference x)) projects))
+	 (project-ids (mapcar (lambda (x) (alist-get 'projectId x)) project-refs)))
+      project-ids))
+
+
+;; List datasets
+;; -------------
+
+(defun bigquery/api-noauth-datasets-list (token project-id)
+  (bigquery/api-make-api-call token 'bigquery/api-datasets-list-url project-id))
+
+
+(defun bigquery/api-datasets-list (project-id)
+  (bigquery/api-handle-auth-and-call
+   'bigquery/api-noauth-datasets-list project-id))
+
+
+(defun bigquery/api-get-dataset-ids-from-response (datasets-list-response)
+  (let* ((datasets (alist-get 'datasets datasets-list-response))
+	 (dataset-refs (mapcar (lambda (x) (alist-get 'datasetReference x)) datasets))
+	 (dataset-ids (mapcar (lambda (x) (alist-get 'datasetId x)) dataset-refs)))
+      dataset-ids))
+
+
+;; List tables
+;; -----------
+
+(defun bigquery/api-noauth-tables-list (token project-id dataset-id)
+  (bigquery/api-make-api-call token
+			      'bigquery/api-tables-list-url project-id dataset-id))
+
+  
+(defun bigquery/api-tables-list (project-id dataset-id)
+  (bigquery/api-handle-auth-and-call
+   'bigquery/api-noauth-tables-list project-id dataset-id))
+
+
+(defun bigquery/api-get-table-ids-from-response (table-list-response)
+  (let* ((tables (alist-get 'tables table-list-response))
+	 (table-refs (mapcar (lambda (x) (alist-get 'tableReference x)) tables))
+	 (table-ids (mapcar (lambda (x) (alist-get 'tableId x)) table-refs)))
+      table-ids))
+
+;; Get table schema
+;; ----------------
+
+(defun bigquery/api-noauth-table-get (token project-id dataset-id table-id)
+  (bigquery/api-make-api-call token
+			      'bigquery/api-table-get-url
+			      project-id dataset-id table-id))
+
+
+(defun bigquery/api-table-get (project-id dataset-id table-id)
+  (bigquery/api-handle-auth-and-call
+   'bigquery/api-noauth-table-get project-id dataset-id table-id))
+
+
+(defun bigquery/api-get-field-names-from-response (table-get-response)
+  (let* ((fields (alist-get 'fields (alist-get 'schema table-get-response)))
+	 (names  (mapcar (lambda (x) (alist-get 'name x)) fields)))
+    names))
+
+
+;; Get complete user schema
+;; ------------------------
+
+(defconst bigquery/schema-db-cache
+  (expand-file-name "bigquery-el/bq-schema.json" user-emacs-directory))
+
+
+(defun bigquery/schema-create-schema-db ()
+  (let (schema (bigquery/schema-get-all))
+    (with-temp-file bigquery/schema-db-cache
+      (insert (json-encode schema)))))
+
+
+(defun bigquery/schema-get-all ()
+  (let ((projects (bigquery/api-get-project-ids-from-response
+		   (bigquery/api-projects-list))))
+    (mapcar 'bigquery/schema-get-project->datasets projects)))
+
+
+(defun bigquery/schema-get-project->datasets (project-id)
+  (let ((dataset-ids (bigquery/api-get-dataset-ids-from-response
+		      (bigquery/api-datasets-list project-id))))
+    (cons project-id
+	  (mapcar
+	   (lambda (ds)
+	     (message ds)
+	     (bigquery/schema-get-dataset->tables project-id ds))
+	   dataset-ids))))
+    
+
+(defun bigquery/schema-get-dataset->tables (project-id dataset-id)
+  (let ((table-ids (bigquery/api-get-table-ids-from-response
+		    (bigquery/api-tables-list project-id dataset-id))))
+    (cons dataset-id table-ids)))
+
+
+(defun bigquery/schema-get-table->fields (project-id dataset-id table-id)
+  (cons table-id (bigquery/api-get-field-names-from-response
+		  (bigquery/api-table-get project-id dataset-id table-id))))
+
+				  
+;; Search schemas with ivy
+;; -----------------------
+
+(defun bigquery/ivy-bigquery-search-schemas ()
+  (interactive)
+  (bigquery/ivy-choose-project))
+
+
+(defun bigquery/ivy-choose-project ()
+  (interactive)
+  (let ((projects (bigquery/schema-get-projects)))
+   (bigquery/schema-cache-projects projects)
+   (ivy-read "Choose a project: "
+	     projects
+	     :action (lambda (prj) (bigquery/ivy-choose-dataset prj)))))
+
+
+(defun bigquery/ivy-choose-dataset (project)
+  (interactive)
+  (let ((datasets (bigquery/schema-get-datasets project)))
+    (bigquery/schema-cache-datasets project datasets)
+    (ivy-read "Choose a dataset: "
+	      datasets
+	      :action (lambda (ds) (bigquery/ivy-choose-table project ds)))))
+
+
+(defun bigquery/ivy-choose-table (project dataset)
+  (interactive)
+  (let ((tables (bigquery/schema-get-tables project dataset)))
+    (bigquery/schema-cache-tables project dataset tables)
+    (ivy-read "Choose a table: "
+	      tables
+	      :action (lambda (tbl)
+			(bigquery/ivy-choose-field project dataset tbl)))))
+  
+
+(defun bigquery/ivy-choose-field (project dataset table)
+  (interactive)
+  (let ((fields (bigquery/schema-get-fields project dataset table)))
+    (bigquery/schema-cache-fields project dataset table fields)
+    (ivy-read "Choose a field: "
+	      fields
+	      :action 'insert)))
+
+
+(dolist (cmd '(bigquery/ivy-choose-project
+	       bigquery/ivy-choose-dataset
+	       bigquery/ivy-choose-table))
+  (ivy-set-actions cmd '(("i" insert "insert"))))
+
+
+(defvar bigquery/schema-cached-projects nil)
+
+(defvar bigquery/schema-cached-datasets nil)
+
+(defvar bigquery/schema-cached-tables nil)
+
+(defvar bigquery/schema-cached-fields nil)
+
+
+(defun bigquery/schema-cache-projects (projects)
+  (setq bigquery/schema-cached-projects projects))
+
+
+(defun bigquery/schema-cache-datasets (project datasets)
+  (when (not (assoc project bigquery/schema-cached-datasets))
+    (setq bigquery/schema-cached-datasets
+	  (cons (cons project datasets) bigquery/schema-cached-datasets))))
+
+
+(defun bigquery/schema-cache-tables (project dataset tables)
+  ;; If the project isn't in this cache,
+  ;; cons the project -> dataset -> tables mapping
+  ;; into the cache
+  (if (not (assoc project bigquery/schema-cached-tables))
+      (setq bigquery/schema-cached-tables
+	    (cons (cons project (cons dataset tables))
+		  bigquery/schema-cached-tables))
+    ;; If the project is in the cache, but the dataset isn't,
+    ;; cons the dataset -> tables mapping into the project
+    (when (not (assoc dataset (cdr (assoc project bigquery/schema-cached-tables))))
+      (setf (cdr (assoc project bigquery/schema-cached-tables))
+	    (cons (cons dataset tables)
+		  (cdr (assoc project bigquery/schema-cached-tables)))))))
+
+
+(defun bigquery/schema-cache-fields (project dataset table fields)
+  ;; If the project isn't in this cache
+  ;; cons the project -> dataset -> table -> fields mapping
+  ;; into the cache  
+  (if (not (assoc project bigquery/schema-cached-fields))
+      (setq bigquery/schema-cached-fields
+	    (cons (cons project (cons dataset (cons table fields)))
+		  bigquery/schema-cached-fields))
+    ;; If the project is in the cache, but the dataset isn't,
+    ;; cons the dataset -> table -> fields mapping into the project
+    (if (not (assoc dataset (cdr (assoc project bigquery/schema-cached-fields))))
+	(setf (cdr (assoc project bigquery/schema-cached-fields))
+	      (cons (cons dataset (cons table fields))
+		    (cdr (assoc project bigquery/schema-cached-tables))))
+      ;; If the project and dataset are in the 
+      (when (not (assoc table (cdr
+			     (assoc dataset
+				    (cdr (assoc project bigquery/schema-cached-fields))))))
+	(setf (cdr (assoc dataset (cdr (assoc project bigquery/schema-cached-fields))))
+	      (cons (cons table fields)
+		    (cdr (assoc dataset (cdr (assoc project bigquery/schema-cached-fields))))))))))
+	  
+		  
+
+(defun bigquery/schema-get-projects ()
+  (or bigquery/schema-cached-projects
+      (bigquery/api-get-project-ids-from-response
+       (bigquery/api-projects-list))))
+
+
+(defun bigquery/schema-get-datasets (project)
+  (or (cdr (assoc project bigquery/schema-cached-datasets))
+      (bigquery/api-get-dataset-ids-from-response
+       (bigquery/api-datasets-list project))))
+
+
+(defun bigquery/schema-get-tables (project dataset)
+  (or (cdr (assoc dataset (cdr (assoc project bigquery/schema-cached-tables))))
+      (bigquery/api-get-table-ids-from-response
+       (bigquery/api-tables-list project dataset))))
+
+
+(defun bigquery/schema-get-fields (project dataset table)
+  (or (cdr (assoc table
+		  (cdr (assoc dataset
+			      (cdr (assoc project
+					  bigquery/schema-cached-fields))))))
+      (bigquery/api-get-field-names-from-response
+       (bigquery/api-table-get project dataset table))))
+		  
+
+
+
+    
