@@ -2,4 +2,5 @@
 \#.*
 
 # Secrets
-.oauth-secrets
+.bigquery-oauth
+.oauth-app-secrets

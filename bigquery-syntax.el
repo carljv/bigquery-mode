@@ -349,7 +349,7 @@
 
 
 (defconst bigquery/syntax-completions
-  (append bigquery/functions bigquery/keywords bigquery/system-variables))
+  (append bigquery/syntax-functions bigquery/syntax-keywords bigquery/syntax-system-variables))
 
 
 (defun company-bigquery-backend (command &optional arg &rest ignored)
