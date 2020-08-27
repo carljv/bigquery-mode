@@ -73,7 +73,7 @@
   (setq bigquery/ivy-last-project project)
   (let ((datasets (bigquery/schema-get-datasets project)))
     (bigquery/schema-cache-datasets project datasets)
-    (ivy-read "Choose a dataset: "
+    (ivy-read (format "Choose a dataset in %s: " project)
 	      datasets
 	      :preselect
 	      (when (seq-contains datasets bigquery/ivy-last-dataset 'string=)
@@ -86,7 +86,7 @@
   (setq bigquery/ivy-last-dataset dataset)
   (let ((tables (bigquery/schema-get-tables project dataset)))
     (bigquery/schema-cache-tables project dataset tables)
-    (ivy-read "Choose a table: "
+    (ivy-read (format "Choose a table in %s.%s: " project dataset) 
 	      tables
 	      :preselect
 	      (when (seq-contains tables bigquery/ivy-last-table 'string=)
@@ -100,7 +100,7 @@
   (setq bigquery/ivy-last-table table)
   (let ((fields (bigquery/schema-get-fields project dataset table)))
     (bigquery/schema-cache-fields project dataset table fields)
-    (ivy-read "Choose a field: "
+    (ivy-read (format "Choose a field in %s.%s.%s: " project dataset table)
 	      fields
 	      :action 'insert
 	      :multi-action (lambda (fs) (insert (mapconcat 'identity fs ", "))))))

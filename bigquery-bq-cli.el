@@ -17,6 +17,8 @@
 
 
 (defun bigquery/bq-run-query-internal (project)  
+  (when (not bigquery/bq-default-project)
+    (setq bigquery/bq-default-project project))
   (let* ((qry (if (region-active-p)
 		  (buffer-substring-no-properties (region-beginning) (region-end))
 		(buffer-substring-no-properties (point-min) (point-max))))
@@ -26,7 +28,7 @@
      (call-process bigquery/bq-command nil "*bq query results*" t
 		   ;; Args to bq
 		   "query"
-		   (format "--project_id=%s" bigquery/bq-default-project)
+		   (format "--project_id=%s" project)
 		   "--nouse_legacy_sql"
 		   (format "%s" qry)))))
 

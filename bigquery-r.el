@@ -48,7 +48,7 @@
     (dolist (p params)
       (when (not (string= (car p) "bq-project"))
 	(setq args (cons (format "\"%s\" = \"%s\"" (car p) (cdr p)) args))))
-  (format "list(%s)" (string-join args ", "))))
+  (format "list(%s)" (mapconcat 'identity args ", "))))
 
 
 (defun bigquery/R-create-query-funcall (query)
@@ -72,7 +72,7 @@ argument."
 	 (if (region-active-p)
 	     (buffer-substring (region-beginning) (region-end))
 	   (buffer-string)))
-	 (r-call (bigquery/R-create-R-query-funcall qry))
+	 (r-call (bigquery/R-create-query-funcall qry))
 	 (ess-proc (ess-get-process (ess-request-a-process nil))))
     (ess-send-string ess-proc r-call t)
     (ess-send-string ess-proc ".bq_result" t)))
