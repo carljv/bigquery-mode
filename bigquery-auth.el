@@ -4,6 +4,7 @@
 
 
 ;;; Code
+(provide 'bigquery-auth)
 
 (require 'json)
 (require 'url-http)

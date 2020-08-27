@@ -1,3 +1,4 @@
+(provide 'bigquery-schema)
 
 ;; Get complete user schema
 ;; ------------------------

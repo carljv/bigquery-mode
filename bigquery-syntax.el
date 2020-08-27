@@ -1,3 +1,4 @@
+(provide 'bigquery-syntax)
 
 (defconst bigquery/syntax-data-types-atomic
   '("int64" "float64" "numeric"
@@ -305,7 +306,7 @@
 
 
 (defun bigquery/syntax-make-font-lock-entry (kws face)
-  (cons (concat "\\<_" (regexp-opt kws) "\\_>") face))
+  (cons (concat "\\_<" (regexp-opt kws) "\\_>") face))
 
 
 (defconst bigquery/syntax-font-lock-defaults
@@ -318,7 +319,6 @@
     bigquery/syntax-data-types 'font-lock-type-face)
    (bigquery/syntax-make-font-lock-entry
     bigquery/syntax-system-variables 'font-lock-variable-name-face)))
-
 
 
 (defconst bigquery/syntax-table
@@ -339,13 +339,14 @@
     (modify-syntax-entry ?\" "." table)
     ;; Make these all punctuation
     (mapc (lambda (c) (modify-syntax-entry c "." table))
-          (string-to-list "!$%&+,:;<=>?@\\|"))
+          (string-to-list "!$%&+,:;<=>?\\|"))
     ;; Make . a word character, since it's an accessor.
     ;; This way "keyword" doesn't get highlighted in
     ;; "array.keyword"
     (modify-syntax-entry ?. "w" table)
+    ;; @@ is used for system variables.
+    (modify-syntax-entry ?@ "w" table)
     table))
-
 
 
 (defconst bigquery/syntax-completions
@@ -357,7 +358,7 @@
 
    (cl-case command
      (interactive (company-begin-backend 'company-sample-backend))
-     (prefix (and (eq major-mode 'bq-mode)
+     (prefix (and (eq major-mode 'bigquery-mode)
                  (company-grab-symbol)))
      (candidates
      (cl-remove-if-not

@@ -1,3 +1,5 @@
+(provide 'bigquery-api)
+
 (require 'ivy)
 (require 'json)
 (require 'url-http)

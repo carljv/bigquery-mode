@@ -12,12 +12,14 @@
 
 ;;; Code:
 
+(provide 'bigquery)
+
 (require 'bigquery-syntax)
 (require 'bigquery-auth)
 (require 'bigquery-api)
 (require 'bigquery-schema)
 (require 'bigquery-bq-cli)
-(require 'bigquery-r)
+(require 'bigquery-R)
 
 
 (progn 
@@ -26,10 +28,10 @@
   (define-key bigquery-mode-map (kbd "C-c C-r") 'bigquery/R-run-query)
   (define-key bigquery-mode-map (kbd "C-c C-s") 'bigquery/ivy-bigquery-search-schemas))
 
+(setq bigquery-mode-syntax-table bigquery/syntax-table)
 
 (define-derived-mode bigquery-mode prog-mode "BigQuery"
-  (setq font-lock-defaults '(bigquery/syntax-font-lock-defaults nil t))
-  (setq bigquery-mode-syntax-table bigquery/syntax-table))
+  (setq font-lock-defaults '(bigquery/syntax-font-lock-defaults nil t)))
 
 
 ;;; bigquery.el ends here

@@ -1,3 +1,6 @@
+(provide 'bigquery-R)
+
+
 ;; Running queries in R via warbler/bigrquery
 
 (defvar bigquery/R-param-line-regexp "^--|"

@@ -1,3 +1,5 @@
+(provide 'bigquery-bq-cli)
+
 (defvar bigquery/bq-command "bq"
   "Path to the bq command line utility.")
 
