@@ -85,24 +85,24 @@
 
 ;;; Code:
 
-(load-file "~/projects/bigquery-el/auth.el")
-(load-file "~/projects/bigquery-el/api.el")
-(load-file "~/projects/bigquery-el/syntax.el")
-(load-file "~/projects/bigquery-el/bq-cli.el")
-(load-file "~/projects/bigquery-el/R.el")
+(require 'bigquery-syntax)
+(require 'bigquery-auth)
+(require 'bigquery-api)
+(require 'bigquery-schema)
+(require 'bigquery-bq-cli)
+(require 'bigquery-r)
 
 
 (progn 
   (setq bigquery-mode-map (make-sparse-keymap))
   (define-key bigquery-mode-map (kbd "C-c C-c") 'bigquery/bq-run-query)
-  (define-key bigquery-mode-map (kbd "C-c C-r") 'bigquery/run-query-in-R)
+  (define-key bigquery-mode-map (kbd "C-c C-r") 'bigquery/R-run-query)
   (define-key bigquery-mode-map (kbd "C-c C-s") 'bigquery/ivy-bigquery-search-schemas))
 
 
 (define-derived-mode bigquery-mode prog-mode "BigQuery"
   (setq font-lock-defaults '(bigquery/syntax-font-lock-defaults nil t))
-  (setq bigquery-mode-syntax-table bigquery/syntax-table)
-  (add-to-list 'auto-mode-alist '("\\.sql\\" . bigquery-mode)))
+  (setq bigquery-mode-syntax-table bigquery/syntax-table))
 
 
 ;;; bigquery.el ends here
