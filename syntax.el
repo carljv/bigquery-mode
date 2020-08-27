@@ -2,7 +2,7 @@
 (defconst bigquery/syntax-data-types-atomic
   '("int64" "float64" "numeric"
     "bool" "string" "bytes"
-    "date" "datetime" "time" "timestamp")
+    "date" "datetime" "time" "timestamp"))
 
 
 (defconst bigquery/syntax-data-types-composite
@@ -309,11 +309,16 @@
 
 
 (defconst bigquery/syntax-font-lock-defaults
-  (mapcar (lambda (x) (apply 'bigquery/syntax-make-font-lock-entry x))
-	  '((bigquery/syntax-keywords 'font-lock-keyword-face)
-	    (bigquery/syntax-functions 'font-lock-function-name-face)
-	    (bigquery/syntax-data-types 'font-lock-type-face)
-	    (bigquery/syntax-system-variables 'font-lock-variable-name-face))))
+  (list
+   (bigquery/syntax-make-font-lock-entry
+    bigquery/syntax-keywords 'font-lock-keyword-face)
+   (bigquery/syntax-make-font-lock-entry
+    bigquery/syntax-functions 'font-lock-function-name-face)
+   (bigquery/syntax-make-font-lock-entry
+    bigquery/syntax-data-types 'font-lock-type-face)
+   (bigquery/syntax-make-font-lock-entry
+    bigquery/syntax-system-variables 'font-lock-variable-name-face)))
+
 
 
 (defconst bigquery/syntax-table

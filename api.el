@@ -56,11 +56,12 @@
 	  "/datasets/" dataset-id
 	  "/tables?max_results=1000"))
 
-  (defun bigquery/api-table-get-url (project-id dataset-id table-id)
-    (concat bigquery/api-base-url
-	    "/projects/" project-id
-	    "/datasets/" dataset-id
-	    "/tables/"   table-id))
+
+(defun bigquery/api-table-get-url (project-id dataset-id table-id)
+  (concat bigquery/api-base-url
+	  "/projects/" project-id
+	  "/datasets/" dataset-id
+	  "/tables/"   table-id))
 
 
 ;; List projects
@@ -183,6 +184,13 @@
 ;; Search schemas with ivy
 ;; -----------------------
 
+(defvar bigquery/ivy-last-project nil)
+
+(defvar bigquery/ivy-last-dataset nil)
+
+(defvar bigquery/ivy-last-table nil)
+
+
 (defun bigquery/ivy-bigquery-search-schemas ()
   (interactive)
   (bigquery/ivy-choose-project))
@@ -194,35 +202,48 @@
    (bigquery/schema-cache-projects projects)
    (ivy-read "Choose a project: "
 	     projects
+	     :preselect
+	     (when (seq-contains projects bigquery/ivy-last-project)
+	       (concat "^" bigquery/ivy-last-project))
 	     :action (lambda (prj) (bigquery/ivy-choose-dataset prj)))))
 
 
 (defun bigquery/ivy-choose-dataset (project)
   (interactive)
+  (setq bigquery/ivy-last-project project)
   (let ((datasets (bigquery/schema-get-datasets project)))
     (bigquery/schema-cache-datasets project datasets)
     (ivy-read "Choose a dataset: "
 	      datasets
+	      :preselect
+	      (when (seq-contains datasets bigquery/ivy-last-dataset 'string=)
+		(concat "^" bigquery/ivy-last-dataset))
 	      :action (lambda (ds) (bigquery/ivy-choose-table project ds)))))
 
 
 (defun bigquery/ivy-choose-table (project dataset)
   (interactive)
+  (setq bigquery/ivy-last-dataset dataset)
   (let ((tables (bigquery/schema-get-tables project dataset)))
     (bigquery/schema-cache-tables project dataset tables)
     (ivy-read "Choose a table: "
 	      tables
+	      :preselect
+	      (when (seq-contains tables bigquery/ivy-last-table 'string=)
+		(concat "^" bigquery/ivy-last-table))
 	      :action (lambda (tbl)
 			(bigquery/ivy-choose-field project dataset tbl)))))
   
 
 (defun bigquery/ivy-choose-field (project dataset table)
   (interactive)
+  (setq bigquery/ivy-last-table table)
   (let ((fields (bigquery/schema-get-fields project dataset table)))
     (bigquery/schema-cache-fields project dataset table fields)
     (ivy-read "Choose a field: "
 	      fields
-	      :action 'insert)))
+	      :action 'insert
+	      :multi-action (lambda (fs) (insert (mapconcat 'identity fs ", "))))))
 
 
 (dolist (cmd '(bigquery/ivy-choose-project
