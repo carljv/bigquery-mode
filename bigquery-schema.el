@@ -102,7 +102,7 @@
     (bigquery/schema-cache-fields project dataset table fields)
     (ivy-read (format "Choose a field in %s.%s.%s: " project dataset table)
 	      fields
-	      :action 'insert
+	      :action (lambda (f) (insert (concat f " ")))
 	      :multi-action (lambda (fs) (insert (mapconcat 'identity fs ", "))))))
 
 

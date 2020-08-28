@@ -30,6 +30,7 @@
 		   "query"
 		   (format "--project_id=%s" project)
 		   "--nouse_legacy_sql"
+		   "-q"
 		   (format "%s" qry)))))
 
 

@@ -12,7 +12,7 @@
 ;;; Google OAuth2.0
 
 (defconst bigquery/google-oauth2-app-secrets-file
-  (expand-file-name "bigquery-el/.oauth-app-secrets" user-emacs-directory))
+  (expand-file-name "bigquery-mode/.oauth-app-secrets" user-emacs-directory))
 
 (defconst bigquery/google-oauth2-client-id
   (alist-get 'client_id (json-read-file bigquery/google-oauth2-app-secrets-file)))
@@ -31,7 +31,7 @@
   "The package only reads from BigQuery datasets.")
 
 (defconst bigquery/google-oauth2-token-cache
-  (expand-file-name "bigquery-el/.bigquery-oauth" user-emacs-directory)
+  (expand-file-name "bigquery-mode/.bigquery-oauth" user-emacs-directory)
   "The cache file for token information.")
 
 

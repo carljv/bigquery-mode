@@ -3,8 +3,15 @@
 
 ;; Running queries in R via warbler/bigrquery
 
+(defun bigquery/R-param-string-trim (s)
+  (replace-regexp-in-string
+   "[[:space:]]+$" "" 
+   (replace-regexp-in-string "^[[:space:]]+" "" s)))
+
+
 (defvar bigquery/R-param-line-regexp "^--|"
   "Pattern for a parameter line comment.")
+
 
 (defun bigquery/R-get-next-header-params ()
   "Read parameters from the header comments in the buffer."
@@ -14,12 +21,12 @@
 	(end-of-line)
 	(let* ((end (point))
 	       (param-string (buffer-substring-no-properties start end)))
-	  (string-trim param-string)))))
+	  (bigquery/R-param-string-trim param-string)))))
 
 
 (defun bigquery/R-parse-param-line-string (param-line)
   "Parse a parameter line into a list of strings."
-  (mapcar 'string-trim (split-string param-line ":")))
+  (mapcar 'bigquery/R-param-string-trim (split-string param-line ":")))
 
 
 (defun bigquery/R-parse-params (&optional params)
