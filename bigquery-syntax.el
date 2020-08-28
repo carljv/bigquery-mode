@@ -254,32 +254,34 @@
 
 
 (defconst bigquery/syntax-functions
-  (append bigquery/syntax-functions-analytic
-	  bigquery/syntax-functions-aggregate
-	  bigquery/syntax-functions-approximate-aggregate
-	  bigquery/syntax-functions-array
-	  bigquery/syntax-functions-bit
-	  bigquery/syntax-functions-conditionals
-	  bigquery/syntax-functions-conversion
-	  bigquery/syntax-functions-date
-	  bigquery/syntax-functions-datetime
-	  bigquery/syntax-functions-debugging
-	  bigquery/syntax-functions-federated
-	  bigquery/syntax-functions-geography
-	  bigquery/syntax-functions-hash
-	  bigquery/syntax-functions-hyperloglogpp
-	  bigquery/syntax-functions-json
-	  bigquery/syntax-functions-math
-	  bigquery/syntax-functions-navigation
-	  bigquery/syntax-functions-net
-	  bigquery/syntax-functions-numbering
-	  bigquery/syntax-functions-security
-	  bigquery/syntax-functions-statistical
-	  bigquery/syntax-functions-string
-	  bigquery/syntax-functions-time
-	  bigquery/syntax-functions-timestamp
-	  bigquery/syntax-functions-uuid))
-	 
+  (let* ((all-fns (append bigquery/syntax-functions-analytic
+			  bigquery/syntax-functions-aggregate
+			  bigquery/syntax-functions-approximate-aggregate
+			  bigquery/syntax-functions-array
+			  bigquery/syntax-functions-bit
+			  bigquery/syntax-functions-conditionals
+			  bigquery/syntax-functions-conversion
+			  bigquery/syntax-functions-date
+			  bigquery/syntax-functions-datetime
+			  bigquery/syntax-functions-debugging
+			  bigquery/syntax-functions-federated
+			  bigquery/syntax-functions-geography
+			  bigquery/syntax-functions-hash
+			  bigquery/syntax-functions-hyperloglogpp
+			  bigquery/syntax-functions-json
+			  bigquery/syntax-functions-math
+			  bigquery/syntax-functions-navigation
+			  bigquery/syntax-functions-net
+			  bigquery/syntax-functions-numbering
+			  bigquery/syntax-functions-security
+			  bigquery/syntax-functions-statistical
+			  bigquery/syntax-functions-string
+			  bigquery/syntax-functions-time
+			  bigquery/syntax-functions-timestamp
+			  bigquery/syntax-functions-uuid))
+	 (safe-fns (mapcar (lambda (f) (concat "safe." f)) all-fns)))
+    (append all-fns safe-fns)))
+
 
 (defconst bigquery/syntax-operators
   '("." "[]" "-" "~" "*" "/" "||"
