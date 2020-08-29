@@ -1,5 +1,3 @@
-(provide 'bigquery-bq-cli)
-
 (defvar bigquery/bq-command "bq"
   "Path to the bq command line utility.")
 
@@ -44,3 +42,10 @@
     (goto-char (point-min))
     (flush-lines "^[[:space:]]*$")
     (buffer-substring-no-properties (point-min) (point-max))))
+
+
+
+(provide 'bigquery-bq-cli)
+
+
+;;; bigquery-bq-cli.el ends here

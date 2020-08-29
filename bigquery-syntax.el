@@ -1,4 +1,3 @@
-(provide 'bigquery-syntax)
 
 (defconst bigquery/syntax-data-types-atomic
   '("int64" "float64" "numeric"
@@ -369,3 +368,6 @@
 
 
 	  
+(provide 'bigquery-syntax)
+
+;;; bigquery-syntax.el ends here

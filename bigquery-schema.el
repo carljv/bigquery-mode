@@ -1,18 +1,3 @@
-(provide 'bigquery-schema)
-
-;; Get complete user schema
-;; ------------------------
-
-(defconst bigquery/schema-db-cache
-  (expand-file-name "bigquery-el/bq-schema.json" user-emacs-directory))
-
-
-(defun bigquery/schema-create-schema-db ()
-  (let (schema (bigquery/schema-get-all))
-    (with-temp-file bigquery/schema-db-cache
-      (insert (json-encode schema)))))
-
-
 (defun bigquery/schema-get-all ()
   (let ((projects (bigquery/api-get-project-ids-from-response
 		   (bigquery/api-projects-list))))
@@ -170,7 +155,6 @@
 		    (cdr (assoc dataset (cdr (assoc project bigquery/schema-cached-fields))))))))))
 	  
 		  
-
 (defun bigquery/schema-get-projects ()
   (or bigquery/schema-cached-projects
       (bigquery/api-get-project-ids-from-response
@@ -197,3 +181,8 @@
       (bigquery/api-get-field-names-from-response
        (bigquery/api-table-get project dataset table))))
 	
+
+
+(provide 'bigquery-schema)
+
+;;; bigquery-schema.el ends here

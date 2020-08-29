@@ -37,9 +37,13 @@
 		    (buffer-substring-no-properties (region-beginning) (region-end))
 		  (buffer-substring-no-properties (point-min) (point-max))))
 	   (qry (bigquery/bq-clean-query-text qry))
-	   (qry (format "query --use_legacy_sql=false \"%s\"\n"
+	   (qry (format "query --use_legacy_sql=False \"%s\"\n"
 		        (replace-regexp-in-string "\n" " " qry))))
-      (comint-send-string "*bq shell*" qry))))
-	       
+      (comint-send-string "*bq shell*" qry)
+      (display-buffer "*bq shell*"))))
+	      
 
 
+(provide 'bigquery-comint)
+
+;;; bigquery-comint.el ends here

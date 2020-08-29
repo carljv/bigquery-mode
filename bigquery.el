@@ -12,13 +12,13 @@
 
 ;;; Code:
 
-(provide 'bigquery)
 
 (require 'bigquery-syntax)
 (require 'bigquery-auth)
 (require 'bigquery-api)
 (require 'bigquery-schema)
 (require 'bigquery-bq-cli)
+(require 'bigquery-comint)
 (require 'bigquery-R)
 
 
@@ -38,11 +38,13 @@
 
 
 ;; bq-shell-mode
-
 (define-derived-mode bq-shell-mode comint-mode "bq shell"
   "bq shell major mode"
   (setq comint-prompt-regexp bigquery/bq-shell-regexp)
   (setq comint-prompt-read-only t))
+
+
+(provide 'bigquery)
 
 ;;; bigquery.el ends here
 

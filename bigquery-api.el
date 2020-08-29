@@ -1,5 +1,3 @@
-(provide 'bigquery-api)
-
 (require 'ivy)
 (require 'json)
 (require 'url-http)
@@ -143,6 +141,6 @@
 
 
 
+(provide 'bigquery-api)
 
-
-    
+;;; bigquery-api.el ends here

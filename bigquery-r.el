@@ -1,8 +1,3 @@
-(provide 'bigquery-R)
-
-
-;; Running queries in R via warbler/bigrquery
-
 (defun bigquery/R-param-string-trim (s)
   (replace-regexp-in-string
    "[[:space:]]+$" "" 
@@ -84,3 +79,8 @@ argument."
     (ess-send-string ess-proc r-call t)
     (ess-send-string ess-proc ".bq_result" t)))
  
+
+
+(provide 'bigquery-R)
+
+;;; bigquery-R.el ends here

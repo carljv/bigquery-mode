@@ -4,7 +4,6 @@
 
 
 ;;; Code
-(provide 'bigquery-auth)
 
 (require 'json)
 (require 'url-http)
@@ -122,6 +121,8 @@
       (bigquery/google-oauth2-request-access-and-store-token))))
 
 
+
+(provide 'bigquery-auth)
 
 ;;; auth.el ends here
 
