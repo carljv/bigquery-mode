@@ -29,7 +29,8 @@
   (define-key bigquery-mode-map (kbd "C-c C-z") 'bigquery/bq-shell-run)
   (define-key bigquery-mode-map (kbd "C-c C-c") 'bigquery/bq-shell-send-buffer-or-region)
   (define-key bigquery-mode-map (kbd "C-c C-r") 'bigquery/R-run-query)
-  (define-key bigquery-mode-map (kbd "C-c C-s") 'bigquery/ivy-bigquery-search-schemas))
+  (define-key bigquery-mode-map (kbd "C-c C-s") 'bigquery/ivy-bigquery-search-schemas)
+  (define-key bigquery-mode-map (kbd "C-c C-u") 'bigquery/toggle-keyword-case))
 
 (setq bigquery-mode-syntax-table bigquery/syntax-table)
 

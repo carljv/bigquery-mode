@@ -347,6 +347,7 @@
     (modify-syntax-entry ?. "w" table)
     ;; @@ is used for system variables.
     (modify-syntax-entry ?@ "w" table)
+    (modify-syntax-entry ?_ "w" table)
     table))
 
 
@@ -365,6 +366,45 @@
      (cl-remove-if-not
        (lambda (c) (string-prefix-p arg c))
        bigquery/syntax-completions))))
+
+
+;; A couple of convenience functions to change the case
+;; of all keywords in the buffer.
+(defun bigquery/syntax-change-keywords (word-changer)
+  (let ((any-syntax-word
+	 (concat "\\_<"
+		 (regexp-opt (append bigquery/syntax-functions
+				     bigquery/syntax-keywords
+				     bigquery/syntax-data-types))
+		 "\\_>"))
+	(still-searching t))
+    (save-excursion
+      (goto-char (point-min))
+      (while still-searching
+	(setq still-searching (search-forward-regexp any-syntax-word nil t))
+	(backward-word)
+	(funcall word-changer (word-at-point))))))
+
+
+(defun bigquery/syntax-upcase-keywords ()
+  (bigquery/syntax-change-keywords
+   (lambda (w) (upcase-word 1)))
+  (setq bigquery/keyword-toggle-upper-p t))
+
+
+(defun bigquery/syntax-downcase-keywords ()
+  (bigquery/syntax-change-keywords
+   (lambda (w) (downcase-word 1)))
+  (setq bigquery/keyword-toggle-upper-p nil))
+
+
+(defvar bigquery/keyword-toggle-upper-p nil)
+
+(defun bigquery/toggle-keyword-case ()
+  (interactive)
+  (if bigquery/keyword-toggle-upper-p
+      (bigquery/syntax-downcase-keywords)
+    (bigquery/syntax-upcase-keywords)))
 
 
 	  
